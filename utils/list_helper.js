@@ -12,14 +12,32 @@ const favoriteBlog = (blogs) => {
 };
 
 const mostBlogs = (blogs) => {
-  const authors = _.countBy(blogs, 'author');
-  const author_blogs = _.map(authors, (value, key) => {
-    return {
-      author: key,
-      blogs: value,
-    };
-  });
-  return _.maxBy(author_blogs, 'blogs');
+  const most_books = _.chain(blogs)
+    .groupBy('author')
+    .map((items, key) => {
+      return {
+        author: key,
+        blogs: items.length,
+      };
+    })
+    .maxBy('blogs')
+    .value();
+
+  return most_books;
+};
+
+const mostLikes = (blogs) => {
+  const most_likes = _.chain(blogs)
+    .groupBy('author')
+    .map((items, key) => {
+      return {
+        author: key,
+        likes: _.sumBy(items, 'likes'),
+      };
+    })
+    .maxBy('likes')
+    .value();
+  return most_likes;
 };
 
 module.exports = {
@@ -27,4 +45,5 @@ module.exports = {
   totalLikes,
   favoriteBlog,
   mostBlogs,
+  mostLikes,
 };
