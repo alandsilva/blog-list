@@ -1,6 +1,6 @@
+const middleware = require('../utils/middleware');
 const blogsRouter = require('express').Router();
 const Blog = require('../models/blog');
-const User = require('../models/user');
 
 blogsRouter.get('/', async (request, response) => {
   const blogs = await Blog.find({})
@@ -9,9 +9,9 @@ blogsRouter.get('/', async (request, response) => {
   response.json(blogs);
 });
 
-blogsRouter.post('/', async (request, response) => {
+blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
   const body = request.body;
-  const user = await User.findById(body.userId);
+  const user = request.user;
   const blog = new Blog({
     title: body.title,
     author: body.author,
@@ -22,14 +22,27 @@ blogsRouter.post('/', async (request, response) => {
   const result = await blog.save();
 
   const blogs = user.blogs.concat(result._id);
-  await user.update({ blogs: blogs });
+  await user.updateOne({ blogs: blogs });
   response.status(201).json(result);
 });
 
-blogsRouter.delete('/:id', async (request, response) => {
-  await Blog.findByIdAndRemove(request.params.id);
-  response.status(204).end();
-});
+blogsRouter.delete(
+  '/:id',
+  middleware.userExtractor,
+  async (request, response) => {
+    const blog = await Blog.findById(request.params.id);
+    const user = request.user;
+
+    if (blog.user.toString() === user._id.toString()) {
+      blog.delete();
+    } else {
+      return response
+        .status(401)
+        .json({ error: 'user not allowed to delete this blog' });
+    }
+    response.status(204).end();
+  }
+);
 
 blogsRouter.put('/:id', async (request, response) => {
   const updatedBlog = await Blog.findByIdAndUpdate(
