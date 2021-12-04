@@ -44,15 +44,14 @@ blogsRouter.delete(
   }
 );
 
-blogsRouter.put('/:id', middleware.userExtractor, async (request, response) => {
+blogsRouter.put('/:id', async (request, response) => {
   const blog = await Blog.findById(request.params.id);
-  const user = request.user;
-  if (blog.user.toString() === user._id.toString()) {
+  // const user = request.user;
+  if (blog) {
     const updatedBlog = await Blog.findByIdAndUpdate(
       request.params.id,
       request.body
     );
-
     response.json(updatedBlog);
   } else {
     return response
