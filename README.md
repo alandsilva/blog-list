@@ -1,2 +1,3 @@
 # blog-list
-Exercise for FullStackOpen 2021
+
+Parts 4 and 5 of FullStackOpen 2021
